@@ -8,6 +8,7 @@ import ejs from "ejs";
 import path from "path";
 import sendMail from "../Utils/sendMail";
 import { sendToken } from "../Utils/jwt";
+import { redis } from "../Utils/redis";
 
 
 interface IRegistrationBody {
@@ -137,6 +138,24 @@ export const loginUser =CatchAsyncErrors(async(req:Request,res:Response,next:Nex
       return next(new ErrorHandler('Invalid email and password', 400));
     }
     sendToken(user,201,res)
+  } catch (error:any) {
+    return next(new ErrorHandler(error.message, 400));
+  }
+})
+
+
+//logout user
+
+export const logoutUser=CatchAsyncErrors(async(req:Request,res:Response,next:NextFunction)=>{
+  try {
+    res.cookie('access_token',"" ,{maxAge:1})
+    res.cookie('refresh_token',"", {maxAge:1})
+    const user=req.user?._id ||""
+    redis.del(user)
+    res.status(201).json({
+      success:true,
+      message:"Logout successfully"
+    })
   } catch (error:any) {
     return next(new ErrorHandler(error.message, 400));
   }
