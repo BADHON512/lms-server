@@ -1,9 +1,13 @@
 import { CatchAsyncErrors } from "./../middleware/CatchAsyncErros";
 require("dotenv").config();
 import { Request, Response, NextFunction } from "express";
-import UserModel from "../models/userModels";
+import UserModel, { IUser } from "../models/userModels";
 import ErrorHandler from "../Utils/Errorhandler";
 import jwt, { Secret } from "jsonwebtoken";
+import ejs from "ejs";
+import path from "path";
+import sendMail from "../Utils/sendMail";
+
 
 interface IRegistrationBody {
   name: string;
@@ -19,14 +23,37 @@ export const RegistrationUser = CatchAsyncErrors(
       const IsEmailExist = await UserModel.findOne({ email });
       if (IsEmailExist) {
         return next(new ErrorHandler("This email already exist", 400));
+      }
+      const user: IRegistrationBody = {
+        name,
+        email,
+        password,
+      };
 
-        const user: IRegistrationBody = {
-          name,
-          email,
-          password,
-        };
+      const activationToken = createActivationToken(user);
 
-        const activationToken = createActivationToken(user);
+      const activationCode = activationToken.activationCode;
+      const data = { user:{badhon:user.name} , activationCode };
+   
+      // const html = await ejs.renderFile(
+      //   path.join(__dirname, "../mails/Activation-mail.ejs"),
+      //   data
+      // );
+
+      try {
+        await sendMail({
+          email: user.email,
+          subject: "Activate your account",
+          template: "activation-mail.ejs",
+          data,
+        });
+        res.status(201).json({
+          success: true,
+          message: `Please check your emil: ${user.email} to activate you account`,
+          activationToken: activationToken.token,
+        });
+      } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
       }
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
@@ -48,5 +75,40 @@ export const createActivationToken = (user: any): IActivationToken => {
       expiresIn: "5m",
     }
   );
-  return {token,activationCode}
+  return { token, activationCode };
 };
+
+interface IActivationRequest{
+  activation_token:string,
+  activation_code:string
+}
+
+export const activateUser=CatchAsyncErrors(async(req:Request,res:Response,next:NextFunction)=>{
+   try {
+    const {activation_code,activation_token}=req.body as IActivationRequest 
+    const newUser:{user:IUser;activationCode:string}=jwt.verify(activation_token,process.env.ACTIVATION_SECRET as Secret) as {user:IUser; activationCode:string}
+
+    if(newUser.activationCode !==activation_code){
+     return next(new ErrorHandler('Your OTP is wrong',400))
+    }
+    const {name,email,password}=newUser.user
+
+  const existUser=await UserModel.findOne({email})
+  if(existUser){
+    return next(new ErrorHandler('Email already exist',400))
+  }
+
+  const user= await UserModel.create({
+    name,email,password
+  })
+
+  res.status(201).json({
+    success:true,
+    message:"Login successfully"
+  })
+    
+   } catch (error:any) {
+    return next(new ErrorHandler(error.message, 400));
+   }
+     
+})
