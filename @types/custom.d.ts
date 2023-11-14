@@ -1,10 +1,7 @@
 import { IUser } from './../models/userModels';
-import { Request } from 'express';
-
-declare global{
-    namespace Express{
-        interface Request{
-            user?:IUser
-        }
+declare module 'express' {
+    interface Request {
+      user?: IUser;
     }
-}
+  }
+  

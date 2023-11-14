@@ -17,7 +17,7 @@ declare module 'express' {
 export const isAuthenticated = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     const access_token = req.cookies.access_token as string;
-    console.log(req.cookies,"cookie")
+    console.log(req.cookies.access_token,"cookie")
 
     if (!access_token) {
       return next(
