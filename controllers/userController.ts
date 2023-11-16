@@ -39,10 +39,10 @@ export const RegistrationUser = CatchAsyncErrors(
       const activationCode = activationToken.activationCode;
       const data = { user: { badhon: user.name }, activationCode };
 
-      // const html = await ejs.renderFile(
-      //   path.join(__dirname, "../mails/Activation-mail.ejs"),
-      //   data
-      // );
+      const html = await ejs.renderFile(
+        path.join(__dirname, "../mails/Activation-mail.ejs"),
+        data
+      );
 
       try {
         await sendMail({

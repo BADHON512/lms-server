@@ -45,6 +45,25 @@ app.get('/', (req: Request, res: Response, next: NextFunction) => {
   });
 });
 
+app.get('/ejs-test',(req:Request,res:Response)=>{
+
+  const badhon={
+    name:'badhon',
+    age:20
+  }
+  ejs.renderFile(path.join(__dirname, "./mails/question.reply.ejs"), badhon, (err, html) => {
+    if (err) {
+      // Handle error, send an error response, or log the error
+      console.error(err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    // Send the rendered HTML as the response
+    res.send(html);
+  
+  })
+})
+
 app.all('*',(req:Request,res:Response,next:NextFunction)=>{
     const err=new Error(`Route ${req.originalUrl} not found`)  as any 
     err.statusCode=400

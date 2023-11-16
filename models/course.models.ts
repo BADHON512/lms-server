@@ -1,13 +1,14 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
+import { IUser } from "./userModels";
 
 interface IComment extends Document {
-  user: object;
+  user: IUser;
   question: string;
   questionReplies: IComment[];
 }
 
 interface IReview extends Document {
-  user: object;
+  user: IUser;
   rating: number;
   comment: string;
   commentReplies: IComment[];
@@ -42,7 +43,7 @@ interface ICourse extends Document {
   demoUrl: string;
   benefits: { title: string };
   prerequisites: { title: string };
-  reviews: IReview;
+  reviews: IReview[];
   courseData: ICourseData[];
   ratings?: number;
   purchased: number;

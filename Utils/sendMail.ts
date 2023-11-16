@@ -1,3 +1,4 @@
+require("dotenv").config();
 import nodemailer, { Transporter } from "nodemailer";
 import ejs from "ejs";
 import path from "path";
@@ -6,7 +7,7 @@ interface EmailOptions {
   email: string;
   subject: string;
   template: string;
-  data:  any;
+  data: any;
 }
 const sendMail = async (option: EmailOptions): Promise<void> => {
   const transporter: Transporter = nodemailer.createTransport({
@@ -20,9 +21,9 @@ const sendMail = async (option: EmailOptions): Promise<void> => {
   });
 
   const { email, subject, template, data } = option;
- 
+
   // get path to the email template
-  const templatePath = path.join(__dirname, "../mails/Activation-mail.ejs");
+  const templatePath = path.join(__dirname, "../mails", template);
   // render the email template with ejs
   const html: string = await ejs.renderFile(templatePath, data);
 
