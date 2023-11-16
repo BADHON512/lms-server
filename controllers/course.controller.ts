@@ -162,3 +162,50 @@ export const  getCourseByUser=CatchAsyncErrors(async(req: Request, res: Response
        return next(new Errorhandler(error.message, 404));
     }
 })
+
+
+// add question in course
+
+interface IAddQuestionData{
+    question:string,
+    courseId:string,
+    contentId:string
+}
+
+
+export const addQuestion=CatchAsyncErrors(async(req: Request, res: Response, next: NextFunction)=>{
+  try {
+    
+    const {question,contentId,courseId}:IAddQuestionData =req.body
+    const course= await CourseModel.findById(courseId)
+    if(!course){
+      return next(new Errorhandler('Course not found',404))
+    }
+    const courseContent= await course.courseData.find((item:any)=>item._id.equals(contentId))
+    
+    if(!courseContent){
+      return next(new Errorhandler('Content not found',404))
+    
+    }
+// create a new question object
+    const newQuestion:any={
+    user:req.user,
+    question,
+    questionReplies:[]
+    }
+
+//add this question to our course content
+  courseContent.questions.push(newQuestion)
+
+  await  course?.save()
+  res.status(200).json({
+    success:true,
+    course
+  })
+
+
+
+  } catch (error:any) {
+    return next(new Errorhandler(error.message, 404));
+  }
+})
