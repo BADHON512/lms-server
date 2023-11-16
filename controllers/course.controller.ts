@@ -3,8 +3,7 @@ import cloudinary from "cloudinary";
 import { NextFunction } from "express";
 import { Response } from "express";
 import { Request } from "express";
-import ejs from 'ejs'
-
+import ejs from "ejs";
 
 import { CatchAsyncErrors } from "../middleware/CatchAsyncErros";
 import Errorhandler from "../Utils/Errorhandler";
@@ -236,49 +235,51 @@ export const addAnswer = CatchAsyncErrors(
         return next(new Errorhandler("Content not found", 404));
       }
       // find the question in our course content
-      const question= courseContent.questions.find((item: any) =>item._id.equals(questionId))
+      const question = courseContent.questions.find((item: any) =>
+        item._id.equals(questionId)
+      );
       if (!question) {
         return next(new Errorhandler("Question not found", 404));
-      
       }
-      
+
       // create a new answer object
       const newAnswer: any = {
         user: req.user,
         answer,
-
-      }
+      };
       // add this answer to our question
       question.questionReplies.push(newAnswer);
 
       await course?.save();
-   
-      if(req.user?._id=== question.user._id){
+
+      if (req.user?._id === question.user._id) {
         //create a notification for the user who asked the question
-      }else{
-        const data={
-          name:question.user.name,
-          title:courseContent.title
-        }
-        const html= await ejs.renderFile(path.join(__dirname,"../mails/Question.reply.ejs"),data)
+      } else {
+        const data = {
+          name: question.user.name,
+          title: courseContent.title,
+        };
+        const html = await ejs.renderFile(
+          path.join(__dirname, "../mails/Question.reply.ejs"),
+          data
+        );
 
         try {
           await sendMail({
-            email:question.user.email,
-            subject:'Question Reply',
-            template:'Question.reply.ejs',
-            data
-          })
-       
-        } catch (error:any) {
-          return next(new Errorhandler(error.message,404))
+            email: question.user.email,
+            subject: "Question Reply",
+            template: "Question.reply.ejs",
+            data,
+          });
+        } catch (error: any) {
+          return next(new Errorhandler(error.message, 404));
         }
       }
 
       res.status(200).json({
-        success:true,
-        course
-      })
+        success: true,
+        course,
+      });
     } catch (error: any) {
       return next(new Errorhandler(error.message, 404));
     }
@@ -287,52 +288,54 @@ export const addAnswer = CatchAsyncErrors(
 
 // add review in course
 
-interface IAddReviewData{
-  review:string;
-  rating:number;
-  userId:string
+interface IAddReviewData {
+  review: string;
+  rating: number;
+  
 }
 
-export const addReview = CatchAsyncErrors(async(req:Request,res:Response,next:NextFunction)=>{
-  try {
-    const userCourseLists= req.user?.courses
-    const courseId=req.params.id
+export const addReview = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userCourseLists = req.user?.courses;
+      const courseId = req.params.id;
 
-    // check if the course exists in the user's course lists
-    const courseExist= userCourseLists?.some((v:any)=>v._id.toString()===courseId.toString())
+      // check if the course exists in the user's course lists
+      const courseExist = userCourseLists?.some(
+        (v: any) => v._id.toString() === courseId.toString()
+      );
 
-    if(!courseExist){
-      return next(new Errorhandler("You are not eligible to access this course",404))
-    }
-    const course= await CourseModel.findById(courseId)
-    if(!course){
-      return next(new Errorhandler("Course not found",404))
-    
-    }
-    const {review,rating}= req.body as IAddReviewData
-    const reviewData:any={
-      user:req.user,
-      rating,
-      comment:review
-    }
-    course?.reviews.push(reviewData)
+      if (!courseExist) {
+        return next(
+          new Errorhandler("You are not eligible to access this course", 404)
+        );
+      }
+      const course = await CourseModel.findById(courseId);
+      if (!course) {
+        return next(new Errorhandler("Course not found", 404));
+      }
+      const { review, rating } = req.body as IAddReviewData;
+      const reviewData: any = {
+        user: req.user,
+        rating,
+        comment: review,
+      };
+      course?.reviews.push(reviewData);
 
-    let avg=0
-    course.reviews.forEach((rev:any)=>{
-      avg+=rev.rating
-
-    })
-    course.ratings=avg/course.reviews.length
-    await course?.save()
- const notification={
-  title:'New Review Received',
-  message:`${req.user?.name} has review in ${course.name}`,
- }
-  res.status(200).json({
-    success:true,
-    course
-  })
-  } catch (error:any) {
-   
+      let avg = 0;
+      course.reviews.forEach((rev: any) => {
+        avg += rev.rating;
+      });
+      course.ratings = avg / course.reviews.length;
+      await course?.save();
+      const notification = {
+        title: "New Review Received",
+        message: `${req.user?.name} has review in ${course.name}`,
+      };
+      res.status(200).json({
+        success: true,
+        course,
+      });
+    } catch (error: any) {}
   }
-})
+);

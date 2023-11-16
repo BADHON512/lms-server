@@ -12,7 +12,7 @@ courseRouter.get('/get-all-course',getAllCourse)
 courseRouter.get('/get-course-content/:id',isAuthenticated,getCourseByUser)
 courseRouter.put('/add-question',isAuthenticated,addQuestion)
 courseRouter.put('/add-answer',isAuthenticated,addAnswer)
-courseRouter.put('/add-review',isAuthenticated,addReview)
+courseRouter.put('/add-review/:id',isAuthenticated,addReview)
 
 
 export default courseRouter
