@@ -51,7 +51,7 @@ app.get('/ejs-test',(req:Request,res:Response)=>{
     name:'badhon',
     age:20
   }
-  ejs.renderFile(path.join(__dirname, "./mails/question.reply.ejs"), badhon, (err, html) => {
+  ejs.renderFile(path.join(__dirname, "./mails/Order-comformation.ejs"), badhon, (err, html) => {
     if (err) {
       // Handle error, send an error response, or log the error
       console.error(err);
