@@ -6,6 +6,8 @@ import UserModel from "../models/userModels";
 import CourseModel from "../models/course.models";
 import { newOrder } from "../services/orderService";
 import path from 'path';
+import sendMail from '../Utils/sendMail';
+import NotificationModel from '../models/notificationModel';
 
 
 interface IOrder{
@@ -22,8 +24,8 @@ export const CreateOrder=CatchAsyncErrors(async(req:Request,res:Response,next:Ne
             return next(new Errorhandler("User not found",404))
         
         }
-        const courseExist=await user.courses.some((item:any)=>item._id.toString()===courseId)
-        if(!courseExist){
+        const courseExist= user.courses.some((item:any)=>item._id.toString()===courseId)
+        if(courseExist){
             return next(new Errorhandler("Course already purchased this account",404))
         
         }
@@ -33,15 +35,16 @@ export const CreateOrder=CatchAsyncErrors(async(req:Request,res:Response,next:Ne
          return next(new Errorhandler("Course not found",404))
         }
         const data:any={
-            course:course._id,
+            courseId:course._id,
             userId:user._id,
         }
 
-        newOrder(data,res,next)
-
+        
+   console.log(user.name,"username")
         const mailData={
             order:{
-                _id:course._id.slice(0,6),
+                _id:course._id.toString().slice(0,6),
+                customer:user.name,
                 name:course.name,
                 price:course.price,
                 date:new Date().toLocaleDateString('en-US',{year:"numeric",month:"long",day:"numeric"})
@@ -49,7 +52,32 @@ export const CreateOrder=CatchAsyncErrors(async(req:Request,res:Response,next:Ne
         }
 
         const html= ejs.renderFile(path.join(__dirname,'../mails/Order-comformation.ejs'),mailData)
+
+        try {
+            await sendMail({
+                email:user.email,
+                subject:'Order Confirmation',
+                template:'Order-comformation.ejs',
+                data:mailData
+            })
+        } catch (error:any) {
+            return next(new Errorhandler(error.message,404))
+        }
         
+        user.courses.push(course._id)
+
+            course.purchased+=1
+        
+        await course.save()
+     
+        await user.save()
+        await NotificationModel.create({
+            user:user._id,
+            title:"New Order",
+            message:`You have a new order form ${course?.name}`
+        })
+
+        newOrder(data,res,next)
     } catch (error:any) {
         return  next(new Errorhandler(error.message,404))
     }

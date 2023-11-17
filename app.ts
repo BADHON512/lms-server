@@ -8,6 +8,7 @@ import { ErrorMiddleWare } from "./middleware/error";
 import userRouter from "./routes/user.route";
 import path from 'path';
 import courseRouter from './routes/course.route';
+import OrderRouter from './routes/order.route';
 
 
 
@@ -26,8 +27,8 @@ app.use(
 );
 
 // routes
-app.use('/api/v1',userRouter)
-app.use('/api/v1',courseRouter)
+app.use('/api/v1',userRouter,courseRouter,OrderRouter)
+
 
 app.get('/', (req: Request, res: Response, next: NextFunction) => {
   // Assuming user data is available, you can pass it as an object
