@@ -12,6 +12,7 @@ import CourseModel from "../models/course.models";
 import mongoose from "mongoose";
 import path from "path";
 import sendMail from "../Utils/sendMail";
+import NotificationModel from "../models/notificationModel";
 // upload course
 export const uploadCourse = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -85,7 +86,7 @@ export const getSingleCourse = CatchAsyncErrors(
       const isCache = await redis.get(courseID);
       if (isCache) {
         const course = JSON.parse(isCache);
-        console.log("hitted");
+
         res.status(200).json({
           success: true,
           course,
@@ -199,6 +200,12 @@ export const addQuestion = CatchAsyncErrors(
       //add this question to our course content
       courseContent.questions.push(newQuestion);
 
+      await NotificationModel.create({
+        user: req.user?._id,
+        title: "New question Received",
+        message: `You have a new question in ${courseContent.title}`,
+      });
+
       await course?.save();
       res.status(200).json({
         success: true,
@@ -254,6 +261,11 @@ export const addAnswer = CatchAsyncErrors(
 
       if (req.user?._id === question.user._id) {
         //create a notification for the user who asked the question
+        await NotificationModel.create({
+          user: req.user?._id,
+          title: "New question Received",
+          message: `You have a new question in ${courseContent.title}`,
+        });
       } else {
         const data = {
           name: question.user.name,
@@ -291,7 +303,6 @@ export const addAnswer = CatchAsyncErrors(
 interface IAddReviewData {
   review: string;
   rating: number;
-  
 }
 
 export const addReview = CatchAsyncErrors(
@@ -337,48 +348,51 @@ export const addReview = CatchAsyncErrors(
         course,
       });
     } catch (error: any) {
-      next(new Errorhandler(error.message,404))
+      next(new Errorhandler(error.message, 404));
     }
   }
 );
 
-//add reply in review 
-interface IAddReviewReply{
-  comment:string,
-  courseId:string,
-  reviewId:string,
+//add reply in review
+interface IAddReviewReply {
+  comment: string;
+  courseId: string;
+  reviewId: string;
 }
 
-export const addReplyToReview=CatchAsyncErrors(async(req:Request,res:Response,next:NextFunction)=>{
-  try {
-    const {comment,courseId,reviewId} =req.body as IAddReviewReply
-    
-    const course=await CourseModel.findById(courseId)
-    if(!course){
-      return next( new Errorhandler('course not found',404))
-    }
-    const review= course.reviews.find((item:any)=>item._id.toString()===reviewId.toString())
-    if(!review){
-      return next( new Errorhandler('review id  not found',404))
-    }
+export const addReplyToReview = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { comment, courseId, reviewId } = req.body as IAddReviewReply;
 
-    const replyData:any={
-      user:req.user,
-      comment
-    }
-    if(!review.commentReplies){
-      review.commentReplies=[]
-    }
+      const course = await CourseModel.findById(courseId);
+      if (!course) {
+        return next(new Errorhandler("course not found", 404));
+      }
+      const review = course.reviews.find(
+        (item: any) => item._id.toString() === reviewId.toString()
+      );
+      if (!review) {
+        return next(new Errorhandler("review id  not found", 404));
+      }
 
-    
-   review.commentReplies.push(replyData)
-    await course.save()
+      const replyData: any = {
+        user: req.user,
+        comment,
+      };
+      if (!review.commentReplies) {
+        review.commentReplies = [];
+      }
 
-    res.status(200).json({
-      success:true,
-      course
-    })
-  } catch (error:any) {
-    next(new Errorhandler(error.message,404))
+      review.commentReplies.push(replyData);
+      await course.save();
+
+      res.status(200).json({
+        success: true,
+        course,
+      });
+    } catch (error: any) {
+      next(new Errorhandler(error.message, 404));
+    }
   }
-})
+);
