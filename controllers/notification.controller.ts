@@ -4,6 +4,7 @@ import { Request } from 'express';
 import { CatchAsyncErrors } from "../middleware/CatchAsyncErros";
 import Errorhandler from '../Utils/Errorhandler';
 import NotificationModel from '../models/notificationModel';
+import corn from 'node-cron'
 
 
 // get all notification ---only admin
@@ -45,4 +46,10 @@ export const updateNotification=CatchAsyncErrors(async(req:Request,res:Response,
     } catch (error:any) {
         return next(new Errorhandler(error.message,404))
     }
+})
+
+
+corn.schedule('0 0 0 * * *',async()=>{
+    const thirtyDaysAgo=new Date(Date.now()-30*24*60*60*1000)
+    await NotificationModel.deleteMany({status:'read',createdAt:{$lt:thirtyDaysAgo}})
 })

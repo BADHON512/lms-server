@@ -1,4 +1,4 @@
-import { getUserById } from "./../services/user.services";
+import { getAllUsersService, getUserById } from "./../services/user.services";
 import { accessTokenOptions, refreshTokenOptions } from "./../Utils/jwt";
 import { CatchAsyncErrors } from "./../middleware/CatchAsyncErros";
 require("dotenv").config();
@@ -11,7 +11,8 @@ import path from "path";
 import sendMail from "../Utils/sendMail";
 import { sendToken } from "../Utils/jwt";
 import { redis } from "../Utils/redis";
-import cloudinary from 'cloudinary'
+import cloudinary from "cloudinary";
+import Errorhandler from "../Utils/Errorhandler";
 
 interface IRegistrationBody {
   name: string;
@@ -322,7 +323,7 @@ export const updatePassword = CatchAsyncErrors(
       }
 
       const user = await UserModel.findById(req.user?._id).select("+password");
-      if(!user){
+      if (!user) {
         return next(new ErrorHandler("User not found", 404));
       }
       if (user?.password === "undefined") {
@@ -334,12 +335,54 @@ export const updatePassword = CatchAsyncErrors(
       }
       user.password = newPassword;
 
-      await user?.save()
-      await redis.set(req.user?._id,JSON.stringify(user))
+      await user?.save();
+      await redis.set(req.user?._id, JSON.stringify(user));
       res.status(201).json({
-        success:true,
-        user
-      })
+        success: true,
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 404));
+    }
+  }
+);
+
+// update avatar
+
+interface IUpdateAvatar {
+  avatar: string;
+}
+
+export const updateProfilePicture = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { avatar } = req.body;
+      const userId = req.user?._id;
+      const user = await UserModel.findById(userId);
+      if (avatar && user) {
+        if (!user) {
+          return next(new ErrorHandler("User not found", 404));
+        }
+        if (user?.avatar.public_id) {
+          await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
+        } else {
+          const photo = await cloudinary.v2.uploader.upload(avatar, {
+            folder: "avatar",
+          });
+
+          user.avatar = {
+            public_id: photo.public_id,
+            url: photo.secure_url,
+          };
+        }
+
+        await user.save();
+        await redis.set(req.user?._id, JSON.stringify(user));
+        res.status(201).json({
+          success: true,
+          user,
+        });
+      }
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 404));
     }
@@ -347,43 +390,13 @@ export const updatePassword = CatchAsyncErrors(
 );
 
 
-// update avatar
+// get all users admin
 
-interface IUpdateAvatar{
-  avatar:string
+export const getAllUsers=CatchAsyncErrors(async(res:Response,next:NextFunction)=>{
+try {
+  getAllUsersService(res)
+} catch (error:any) {
+  return next(new Errorhandler(error.message,404))
 }
 
-export const updateProfilePicture=CatchAsyncErrors(async(req:Request,res:Response,next:NextFunction)=>{
- try {
-  const {avatar}=req.body;
-  const userId=req.user?._id
-  const user=await UserModel.findById(userId)
-   if(avatar&&user){
-    if(!user){
-      return next(new ErrorHandler("User not found", 404));
-    }
-    if(user?.avatar.public_id){
-      await cloudinary.v2.uploader.destroy(user?.avatar?.public_id)
-    }else{
-     const photo= await cloudinary.v2.uploader.upload(avatar,{
-      folder:'avatar'
-     })
-  
-       user.avatar={
-     public_id:photo.public_id,
-     url:photo.secure_url
-    }
-    }
-
-   await user.save()
-   await redis.set(req.user?._id,JSON.stringify(user))
-   res.status(201).json({
-     success:true,
-     user
-   })
-   }
-
- } catch (error: any) {
-  return next(new ErrorHandler(error.message, 404));
-}
-}) 
+})
