@@ -1,5 +1,5 @@
 import { isAuthenticated } from './../middleware/auth';
-import { RegistrationUser, activateUser, loginUser, logoutUser, authorizeRoles, updateAccessToken, getUserInfo, socialAuth, updateUserInfo, updatePassword, updateProfilePicture } from './../controllers/userController';
+import { RegistrationUser, activateUser, loginUser, logoutUser, authorizeRoles, updateAccessToken, getUserInfo, socialAuth, updateUserInfo, updatePassword, updateProfilePicture, getAllUsers } from './../controllers/userController';
 import  express  from 'express';
 
 const userRouter=express.Router()
@@ -14,5 +14,6 @@ userRouter.post('/social-auth',socialAuth)
 userRouter.put('/update-user-info',isAuthenticated,updateUserInfo)
 userRouter.put('/update-profile',isAuthenticated,updateProfilePicture)
 userRouter.post('/update-password',isAuthenticated,updatePassword)
+userRouter.get('/get-all-users',isAuthenticated,authorizeRoles('admin'),getAllUsers)
 export default userRouter
 

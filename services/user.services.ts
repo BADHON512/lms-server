@@ -23,8 +23,10 @@ export const getUserById=async(id:string,res:Response,next:NextFunction)=>{
 // get all users
 export const getAllUsersService= async(res:Response)=>{
     const users =await UserModel.find().sort({createdAt:-1})
+    const totalUser=await UserModel.countDocuments()
     res.status(201).json({
         success:true,
-        users
+        users,
+        totalUser
     })
 }

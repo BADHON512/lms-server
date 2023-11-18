@@ -1,3 +1,4 @@
+import { getAllCourseService } from './../services/course.services';
 import { redis } from "./../Utils/redis";
 import cloudinary from "cloudinary";
 import { NextFunction } from "express";
@@ -396,3 +397,17 @@ export const addReplyToReview = CatchAsyncErrors(
     }
   }
 );
+
+
+
+// get all courses admin
+
+export const getAllCourses=CatchAsyncErrors(async(req: Request,res:Response,next:NextFunction)=>{
+  try {
+    getAllCourseService(res)
+  } catch (error:any) {
+    return next(new Errorhandler(error.message,404))
+  }
+  
+  })
+  

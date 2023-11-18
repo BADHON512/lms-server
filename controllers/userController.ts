@@ -392,7 +392,7 @@ export const updateProfilePicture = CatchAsyncErrors(
 
 // get all users admin
 
-export const getAllUsers=CatchAsyncErrors(async(res:Response,next:NextFunction)=>{
+export const getAllUsers=CatchAsyncErrors(async(req:Request,res:Response,next:NextFunction)=>{
 try {
   getAllUsersService(res)
 } catch (error:any) {
