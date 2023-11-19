@@ -1,4 +1,8 @@
-import { getAllUsersService, getUserById } from "./../services/user.services";
+import {
+  RoleChanger,
+  getAllUsersService,
+  getUserById,
+} from "./../services/user.services";
 import { accessTokenOptions, refreshTokenOptions } from "./../Utils/jwt";
 import { CatchAsyncErrors } from "./../middleware/CatchAsyncErros";
 require("dotenv").config();
@@ -389,14 +393,29 @@ export const updateProfilePicture = CatchAsyncErrors(
   }
 );
 
-
 // get all users admin
 
-export const getAllUsers=CatchAsyncErrors(async(req:Request,res:Response,next:NextFunction)=>{
-try {
-  getAllUsersService(res)
-} catch (error:any) {
-  return next(new Errorhandler(error.message,404))
-}
+export const getAllUsers = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      getAllUsersService(res);
+    } catch (error: any) {
+      return next(new Errorhandler(error.message, 404));
+    }
+  }
+);
 
-})
+interface IRole{
+  id:string,
+  role:string 
+}
+export const updateUserRole = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id, role } = req.body  as IRole;
+      RoleChanger(res, id, role);
+    } catch (error: any) {
+      return next(new Errorhandler(error.message, 404));
+    }
+  }
+);
