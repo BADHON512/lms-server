@@ -10,6 +10,7 @@ import path from 'path';
 import courseRouter from './routes/course.route';
 import OrderRouter from './routes/order.route';
 import notificationRouter from './routes/notification.route';
+import AnalyticsRouter from './routes/user.analytics.route';
 
 
 
@@ -28,7 +29,7 @@ app.use(
 );
 
 // routes
-app.use('/api/v1',userRouter,courseRouter,OrderRouter,notificationRouter)
+app.use('/api/v1',userRouter,courseRouter,OrderRouter,notificationRouter,AnalyticsRouter)
 
 
 app.get('/', (req: Request, res: Response, next: NextFunction) => {
