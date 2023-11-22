@@ -11,6 +11,7 @@ import courseRouter from './routes/course.route';
 import OrderRouter from './routes/order.route';
 import notificationRouter from './routes/notification.route';
 import AnalyticsRouter from './routes/user.analytics.route';
+import FaqRouter from './routes/layout.router';
 
 
 
@@ -29,7 +30,7 @@ app.use(
 );
 
 // routes
-app.use('/api/v1',userRouter,courseRouter,OrderRouter,notificationRouter,AnalyticsRouter)
+app.use('/api/v1',userRouter,courseRouter,OrderRouter,notificationRouter,AnalyticsRouter,FaqRouter)
 
 
 app.get('/', (req: Request, res: Response, next: NextFunction) => {

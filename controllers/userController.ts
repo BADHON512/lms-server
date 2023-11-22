@@ -196,8 +196,8 @@ export const authorizeRoles = (...roles: string[]) => {
 export const updateAccessToken = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const refresh_token = req.cookies.refresh_token;
-      console.log(req.cookies, "refresh");
+      const refresh_token = req.cookies.refresh_token as string;
+
       const decoded = jwt.verify(
         refresh_token,
         process.env.REFRESH_TOKEN as Secret
@@ -205,7 +205,7 @@ export const updateAccessToken = CatchAsyncErrors(
       if (!decoded) {
         return next(new ErrorHandler("Could not refresh token", 404));
       }
-      const session = await redis.get(decoded.id);
+      const session = (await redis.get(decoded.id)) as string;
       if (!session) {
         return next(new ErrorHandler("Could not refresh token", 404));
       }
@@ -214,17 +214,18 @@ export const updateAccessToken = CatchAsyncErrors(
 
       const accessToken = jwt.sign(
         { id: user._id },
-        process.env.REFRESH_TOKEN as Secret,
+        process.env.ACCESS_TOKEN as string,
         { expiresIn: "5m" }
       );
       const refreshToken = jwt.sign(
         { id: user._id },
-        process.env.REFRESH_TOKEN as Secret,
+        process.env.REFRESH_TOKEN as string,
         { expiresIn: "3d" }
       );
       req.user = user;
       res.cookie("access_token", accessToken, accessTokenOptions);
       res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+      await redis.set(user._id, JSON.stringify(user), "EX", 604800);
       res.status(201).json({
         success: true,
         accessToken,
@@ -405,14 +406,14 @@ export const getAllUsers = CatchAsyncErrors(
   }
 );
 
-interface IRole{
-  id:string,
-  role:string 
+interface IRole {
+  id: string;
+  role: string;
 }
 export const updateUserRole = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id, role } = req.body  as IRole;
+      const { id, role } = req.body as IRole;
       RoleChanger(res, id, role);
     } catch (error: any) {
       return next(new Errorhandler(error.message, 404));
@@ -420,27 +421,26 @@ export const updateUserRole = CatchAsyncErrors(
   }
 );
 
+export const deleteUser = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const user = await UserModel.findById(id);
+      if (!user) {
+        return next(new Errorhandler("User not found", 404));
+      }
+      if (user?.avatar?.public_id) {
+        await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
+      }
 
-export const deleteUser = CatchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
-try {
-  const { id } = req.params
-  const user = await UserModel.findById(id);
-  if(!user){
-    return next(new Errorhandler("User not found", 404));
+      await user.deleteOne({ id });
+      await redis.del(id);
+      res.status(201).json({
+        success: true,
+        message: "User deleted successfully",
+      });
+    } catch (error: any) {
+      return next(new Errorhandler(error.message, 404));
+    }
   }
-  if(user?.avatar?.public_id){
-    await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
-  }
-
-  await user.deleteOne({id})
-  await redis.del(id);
-  res.status(201).json({
-    success: true,
-    message:"User deleted successfully"
-  })
-
-} catch (error:any) {
-  return next(new Errorhandler(error.message, 404));
-}
-
-})
+);

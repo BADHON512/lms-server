@@ -97,7 +97,7 @@ export const getSingleCourse = CatchAsyncErrors(
           "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.link"
         );
 
-        await redis.set(courseID, JSON.stringify(course));
+        await redis.set(courseID, JSON.stringify(course),'EX',604800);
         res.status(200).json({
           success: true,
           course,
