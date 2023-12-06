@@ -361,25 +361,29 @@ interface IUpdateAvatar {
 export const updateProfilePicture = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { avatar } = req.body;
+      const { avatar } = req.body as IUpdateAvatar
       const userId = req.user?._id;
+      console.log('userId', userId)
       const user = await UserModel.findById(userId);
       if (avatar && user) {
         if (!user) {
           return next(new ErrorHandler("User not found", 404));
         }
         if (user?.avatar.public_id) {
+          console.log('user.avatar.public_id', user.avatar.public_id)
           await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
-        } else {
-          const photo = await cloudinary.v2.uploader.upload(avatar, {
-            folder: "avatar",
-          });
-
-          user.avatar = {
-            public_id: photo.public_id,
-            url: photo.secure_url,
-          };
+      
         }
+
+        const photo = await cloudinary.v2.uploader.upload(avatar, {
+          folder: "avatar",
+        });
+
+        user.avatar = {
+          public_id: photo.public_id,
+          url: photo.secure_url,
+        };
+        console.log('photo', photo)
 
         await user.save();
         await redis.set(req.user?._id, JSON.stringify(user));
