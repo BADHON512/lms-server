@@ -1,4 +1,4 @@
-import { getAllCourseService } from './../services/course.services';
+import { getAllCourseService } from "./../services/course.services";
 import { redis } from "./../Utils/redis";
 import cloudinary from "cloudinary";
 import { NextFunction } from "express";
@@ -14,6 +14,7 @@ import mongoose from "mongoose";
 import path from "path";
 import sendMail from "../Utils/sendMail";
 import NotificationModel from "../models/notificationModel";
+import axios from "axios";
 // upload course
 export const uploadCourse = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -97,7 +98,7 @@ export const getSingleCourse = CatchAsyncErrors(
           "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.link"
         );
 
-        await redis.set(courseID, JSON.stringify(course),'EX',604800);
+        await redis.set(courseID, JSON.stringify(course), "EX", 604800);
         res.status(200).json({
           success: true,
           course,
@@ -398,39 +399,60 @@ export const addReplyToReview = CatchAsyncErrors(
   }
 );
 
-
-
 // get all courses admin
 
-export const getAllCourses=CatchAsyncErrors(async(req: Request,res:Response,next:NextFunction)=>{
-  try {
-    getAllCourseService(res)
-  } catch (error:any) {
-    return next(new Errorhandler(error.message,404))
-  }
-  
-  })
-
-  export const deleteCourse = CatchAsyncErrors(async (req: Request, res: Response, next: NextFunction) => {
+export const getAllCourses = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params
+      getAllCourseService(res);
+    } catch (error: any) {
+      return next(new Errorhandler(error.message, 404));
+    }
+  }
+);
+
+export const deleteCourse = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
       const course = await CourseModel.findById(id);
-      if(!course){
+      if (!course) {
         return next(new Errorhandler("Course not found", 404));
       }
-   
-    
-      await course.deleteOne({id})
+
+      await course.deleteOne({ id });
       await redis.del(id);
       res.status(201).json({
         success: true,
-        message:"course deleted successfully"
-      })
-    
-    } catch (error:any) {
+        message: "course deleted successfully",
+      });
+    } catch (error: any) {
       return next(new Errorhandler(error.message, 404));
     }
-    
-    })
-    
-  
+  }
+);
+
+// GENERATE VIDEO URL
+
+export const generateVideoUrl = CatchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { videoId } = req.body;
+      console.log(videoId)
+      const response = await axios.post(
+        `https://dev.vdocipher.com/api/videos/${videoId}/otp`,
+        { ttl: 300 },
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Apisecret ${process.env.VIDEO_PLAYER_KEY}`,
+          },
+        }
+      );
+      res.json(response.data)
+    } catch (error: any) {
+      return next(new Errorhandler(error.message, 404));
+    }
+  }
+);

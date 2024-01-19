@@ -8,6 +8,7 @@ import {
   addReview,
   deleteCourse,
   editCourse,
+  generateVideoUrl,
   getAllCourse,
   getAllCourses,
   getCourseByUser,
@@ -22,6 +23,13 @@ courseRouter.post(
   isAuthenticated,
   authorizeRoles("admin"),
   uploadCourse
+);
+
+courseRouter.post(
+  "/getVideoOtp",
+  // isAuthenticated,
+  // authorizeRoles("admin"),
+  generateVideoUrl
 );
 courseRouter.put(
   "/course-edit/:id",
