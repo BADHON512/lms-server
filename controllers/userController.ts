@@ -400,14 +400,20 @@ export const getAllUsers = CatchAsyncErrors(
 );
 
 interface IRole {
-  id: string;
+  email: string;
   role: string;
 }
 export const updateUserRole = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id, role } = req.body as IRole;
-      RoleChanger(res, id, role);
+      const { email, role } = req.body as IRole;
+
+      const user=await UserModel.findOne({email})
+      if(!user){
+        return next(new Errorhandler("User not found", 404));
+      }
+      const id=user._id
+    RoleChanger(res, id, role);
     } catch (error: any) {
       return next(new Errorhandler(error.message, 404));
     }

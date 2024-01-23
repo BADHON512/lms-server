@@ -32,8 +32,8 @@ export const getAllUsersService= async(res:Response)=>{
 }
 
 
-export const RoleChanger=async(res:Response,id:string,role:string)=>{
-    const user=await UserModel.findByIdAndUpdate(id,{role},{new:true})
+export const RoleChanger=async(res:Response,email:string,role:string)=>{
+    const user=await UserModel.findByIdAndUpdate(email,{role},{new:true})
     res.status(201).json({
         success:true,
         user,
