@@ -16,6 +16,6 @@ userRouter.put('/update-profile',isAuthenticated,updateProfilePicture)
 userRouter.put('/update-user-role',updateAccessToken, isAuthenticated,authorizeRoles('admin') ,updateUserRole)
 userRouter.put('/update-password',updateAccessToken, isAuthenticated,updatePassword)
 userRouter.get('/get-all-users',updateAccessToken,isAuthenticated,authorizeRoles('admin'),getAllUsers)
-userRouter.get('/delete-users/:id',updateAccessToken,isAuthenticated,authorizeRoles('admin'),deleteUser)
+userRouter.delete('/delete-users/:id',updateAccessToken,isAuthenticated,authorizeRoles('admin'),deleteUser)
 export default userRouter
 
