@@ -46,10 +46,13 @@ export const editCourse = CatchAsyncErrors(
     try {
       const data = req.body;
       const thumbnail = data.thumbnail;
+      const courseID = req.params.id;
+      console.log("data", data);
 
-      if (thumbnail) {
-        await cloudinary.v2.uploader.destroy(thumbnail.public_id);
+      const courseData = (await CourseModel.findById(courseID)) as any;
 
+      if (thumbnail && !thumbnail.startsWith("https")) {
+        await cloudinary.v2.uploader.destroy(courseData.thumbnail.public_id);
         const photo = await cloudinary.v2.uploader.upload(thumbnail, {
           folder: "course",
         });
@@ -60,9 +63,28 @@ export const editCourse = CatchAsyncErrors(
         };
       }
 
-      const courseId = req.params.id;
+      if (thumbnail.startsWith("https")) {
+        data.thumbnail = {
+          public_id: courseData?.thumbnail.public_id,
+          url: courseData?.thumbnail.url,
+        };
+      }
+
+      // if (thumbnail) {
+      //   await cloudinary.v2.uploader.destroy(thumbnail.public_id);
+
+      //   const photo = await cloudinary.v2.uploader.upload(thumbnail, {
+      //     folder: "course",
+      //   });
+
+      //   data.thumbnail = {
+      //     public_id: photo.public_id,
+      //     url: photo.secure_url,
+      //   };
+      // }
+
       const course = await CourseModel.findByIdAndUpdate(
-        courseId,
+        courseID,
         {
           $set: data,
         },
@@ -438,7 +460,7 @@ export const generateVideoUrl = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { videoId } = req.body;
-      console.log(videoId)
+      console.log(videoId);
       const response = await axios.post(
         `https://dev.vdocipher.com/api/videos/${videoId}/otp`,
         { ttl: 300 },
@@ -450,7 +472,7 @@ export const generateVideoUrl = CatchAsyncErrors(
           },
         }
       );
-      res.json(response.data)
+      res.json(response.data);
     } catch (error: any) {
       return next(new Errorhandler(error.message, 404));
     }
