@@ -18,6 +18,6 @@ FaqRouter.put(
   authorizeRoles("admin"),
   EditLayout
 );
-FaqRouter.get("/get-layout:type", getLayout);
+FaqRouter.get("/get-layout/:type", getLayout);
 
 export default FaqRouter;
