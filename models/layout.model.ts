@@ -13,7 +13,7 @@ interface Category extends Document{
 }
 
 interface BannerImage extends Document{
-    public:string
+    public_id:string
     url:string
 }
 
@@ -21,7 +21,7 @@ interface Layout extends Document{
     type:string,
     faq:FaqItem[],
     categories:Category[],
-    banners:{
+    banner:{
         image:BannerImage
         title:string,
         subtitle:string,
@@ -47,7 +47,7 @@ const categorySchema = new Schema<Category>({
 })
 
 const bannerImageSchema = new Schema<BannerImage>({ 
-    public:{
+    public_id:{
         type:String,
     },
     url:{
@@ -62,7 +62,7 @@ const bannerImageSchema = new Schema<BannerImage>({
     },
     faq:[faqSchema],
     categories:[categorySchema],
-    banners:{
+    banner:{
         image:bannerImageSchema,
         title:{
             type:String,

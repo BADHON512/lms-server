@@ -8,8 +8,8 @@ const FaqRouter = express.Router();
 
 FaqRouter.post(
   "/create-layout",
-  isAuthenticated,
-  authorizeRoles("admin"),
+  // isAuthenticated,
+  // authorizeRoles("admin"),
   createLayout
 );
 FaqRouter.put(
@@ -18,6 +18,6 @@ FaqRouter.put(
   authorizeRoles("admin"),
   EditLayout
 );
-FaqRouter.get("/get-layout", getLayout);
+FaqRouter.get("/get-layout:type", getLayout);
 
 export default FaqRouter;
