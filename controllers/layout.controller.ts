@@ -19,20 +19,16 @@ export const createLayout = CatchAsyncErrors(
       if (type === "Banner") {
         const { image, title, subTitle } = req.body;
 
-        const bannerData :any = await LayoutModel.findOne({ type: "Banner" });
-
-        const data = image.startsWith("https")
-          ? bannerData
-          : await cloudinary.v2.uploader.upload(image, {
-              folder: "Banner",
-            });
-
+        const photo = await cloudinary.v2.uploader.upload(image, {
+          folder: "Banner",
+        });
+        console.log("photo", photo);
         const banner = {
           type: "Banner",
           banner: {
             image: {
-              public_id: image.startsWith("https")?bannerData?.banner.image.public_id:data?.public_id,
-              url: image.startsWith("https")?bannerData?.banner.image.url:data?.secure_url,
+              public_id: photo.public_id,
+              url: photo.secure_url,
             },
             title,
             subTitle,
@@ -99,26 +95,26 @@ export const EditLayout = CatchAsyncErrors(
       if (type === "Banner") {
         const { image, title, subTitle } = req.body;
 
-        const banner: any = await LayoutModel.findOne({ type: type });
-        if (!banner) {
-          return next(new Errorhandler("Banner not found", 404));
-        }
-        if (banner) {
-          await cloudinary.v2.uploader.destroy(banner.image.public_id);
-        }
-        const photo = await cloudinary.v2.uploader.upload(image, {
-          folder: "Banner",
-        });
 
-        const newBanner = {
-          image: {
-            public_id: photo.public_id,
-            url: photo.secure_url,
-          },
-          title,
-          subTitle,
+        const bannerData: any = await LayoutModel.findOne({ type: 'Banner' });
+      const data=image.startsWith('https')?bannerData:await cloudinary.v2.uploader.upload(image, {
+        folder: "Banner",})
+
+
+   
+
+        const banner = {
+          type: "Banner",
+ 
+            image: {
+              public_id: image.startsWith('https')?bannerData.banner.image.public_id:data?.public_id,
+              url: image.startsWith('https')?bannerData.banner.image.url:data?.secure_url,
+            },
+            title,
+            subTitle,
+          
         };
-        await LayoutModel.findOneAndUpdate({ type: "Banner" }, newBanner, {
+        await LayoutModel.findByIdAndUpdate(bannerData._id, {banner}, {
           new: true,
         });
 
@@ -187,7 +183,7 @@ export const EditLayout = CatchAsyncErrors(
 export const getLayout = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const type = req.params.type;
+      const  type  = req.params.type;
 
       const layout = await LayoutModel.find({ type: type });
       res.status(201).json({
