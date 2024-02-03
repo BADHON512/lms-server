@@ -8,9 +8,9 @@ const FaqRouter = express.Router();
 
 FaqRouter.post(
   "/create-layout",
-  // updateAccessToken,
-  // isAuthenticated,
-  // authorizeRoles("admin"),
+  updateAccessToken,
+  isAuthenticated,
+  authorizeRoles("admin"),
   createLayout
 );
 FaqRouter.put(
