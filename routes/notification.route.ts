@@ -1,4 +1,4 @@
-import { authorizeRoles } from "./../controllers/userController";
+import { authorizeRoles, updateAccessToken } from "./../controllers/userController";
 import express from "express";
 import { isAuthenticated } from "../middleware/auth";
 import { getNotifications, updateNotification } from "../controllers/notification.controller";
@@ -7,7 +7,7 @@ import { getNotifications, updateNotification } from "../controllers/notificatio
 
 const notificationRouter= express.Router();
  
-notificationRouter.get("/get-all-notification",isAuthenticated,authorizeRoles('admin'),getNotifications);           
-notificationRouter.put("/notification-update/:id",isAuthenticated,authorizeRoles('admin'),updateNotification);           
+notificationRouter.get("/get-all-notification",updateAccessToken,isAuthenticated,authorizeRoles('admin'),getNotifications);           
+notificationRouter.put("/notification-update/:id",updateAccessToken,isAuthenticated,authorizeRoles('admin'),updateNotification);           
 
 export default notificationRouter;
