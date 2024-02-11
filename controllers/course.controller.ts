@@ -137,25 +137,17 @@ export const getSingleCourse = CatchAsyncErrors(
 export const getAllCourse = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const isExist = await redis.get("allCourses");
-      if (isExist) {
-        const course = JSON.parse(isExist);
 
-        res.status(200).json({
-          success: true,
-          course,
-        });
-      } else {
         const course = await CourseModel.find().select(
           "-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links"
         );
-        await redis.set("allCourses", JSON.stringify(course));
+      
 
         res.status(200).json({
           success: true,
           course,
         });
-      }
+      
     } catch (error: any) {
       next(new Errorhandler(error.message, 404));
     }
