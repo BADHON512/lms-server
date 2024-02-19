@@ -8,6 +8,9 @@ import { getAllOrdersService, newOrder } from "../services/orderService";
 import path from "path";
 import sendMail from "../Utils/sendMail";
 import NotificationModel from "../models/notificationModel";
+import { redis } from "../Utils/redis";
+require("dotenv").config(); 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 interface IOrder {
   courseId: string;
@@ -18,6 +21,17 @@ export const CreateOrder = CatchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { courseId, payment_info } = req.body as IOrder;
+
+      if(payment_info){
+        if('id' in payment_info ){
+          const paymentID=payment_info.id
+          const payment=await stripe.paymentIntents.retrieve(paymentID)
+          if(payment.status===!"succeeded"){
+            return next(new Errorhandler("Payment failed Payment not authorized", 404))
+          }
+          }
+        
+      }
 
       const user = await UserModel.findById(req.user?._id);
       if (!user) {
@@ -72,7 +86,8 @@ export const CreateOrder = CatchAsyncErrors(
         return next(new Errorhandler(error.message, 404));
       }
 
-      user.courses.push(course._id);
+      user.courses.push(course?._id);
+      await redis.set(req.user?._id,JSON.stringify(user))
 
       course.purchased += 1;
 
@@ -103,3 +118,44 @@ export const getAllOrders = CatchAsyncErrors(
     }
   }
 );
+
+// send stripe publishable key
+export const sendStripePublishableKey = CatchAsyncErrors(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        res.status(200).json({
+          success: true,
+          publishableKey: process.env.SRIPE_TPUBLISHABLE_KEY,
+        });
+      } catch (error: any) {
+        return next(new Errorhandler(error.message, 404));
+      }
+    }
+)
+
+
+// new payment
+export const newPayment=CatchAsyncErrors(async(req:Request,res:Response,next:NextFunction )=>{
+  try {
+     const myPayment=await stripe.paymentIntents.create({
+      amount:req.body.amount,
+        currency:"USD",
+        metadata:{
+        company:" learn-with-badhon"
+      },
+    
+      automatic_payment_methods:{
+        enabled:true,
+      }
+     })
+
+     res.status(201).json({
+      success:true,
+      client_secret:myPayment.client_secret,
+     })
+  } catch (error:any) {
+    
+    return next(new Errorhandler(error.message, 404));
+  
+  }
+})
