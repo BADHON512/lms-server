@@ -59,7 +59,7 @@ const reviewSchema = new Schema<IReview>({
   comment: String,
   commentReplies:[Object]
 
-});
+},{timestamps:true});
 
 const linkSchema = new Schema<ILink>({
   title: String,
@@ -70,7 +70,7 @@ const commentSchema = new Schema<IComment>({
   user: Object,
   question: String,
   questionReplies: [Object],
-});
+},{timestamps:true});
 
 const courseDataSchema = new Schema<ICourseData>({
   videoUrl: String,
@@ -83,7 +83,7 @@ const courseDataSchema = new Schema<ICourseData>({
   link: [linkSchema],
   suggestions: String,
   questions: [commentSchema],
-});
+},{timestamps:true});
 
 const courseSchema = new Schema<ICourse>({
   name: {

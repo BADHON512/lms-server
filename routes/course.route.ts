@@ -47,6 +47,6 @@ courseRouter.get("/get-course-content/:id",  updateAccessToken, isAuthenticated,
 courseRouter.put("/add-question",  updateAccessToken, isAuthenticated, addQuestion);
 courseRouter.put("/add-answer",  updateAccessToken, isAuthenticated, addAnswer);
 courseRouter.put("/add-review/:id",  updateAccessToken, isAuthenticated, addReview);
-courseRouter.put("/add-review-reply",  updateAccessToken,isAuthenticated,authorizeRoles('admin'),addReplyToReview);
+courseRouter.put("/add-review-reply",  updateAccessToken,isAuthenticated,addReplyToReview);
 
 export default courseRouter;

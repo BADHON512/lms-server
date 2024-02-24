@@ -329,10 +329,13 @@ export const addReview = CatchAsyncErrors(
       const userCourseLists = req.user?.courses;
       const courseId = req.params.id;
 
+      console.log(courseId)
+
       // check if the course exists in the user's course lists
-      const courseExist = userCourseLists?.some(
-        (v: any) => v._id.toString() === courseId.toString()
+      const courseExist =  userCourseLists?.some(
+        (v: any) => v._id === courseId
       );
+
 
       if (!courseExist) {
         return next(
@@ -357,10 +360,15 @@ export const addReview = CatchAsyncErrors(
       });
       course.ratings = avg / course.reviews.length;
       await course?.save();
-      const notification = {
+      // const notification = {
+      //   title: "New Review Received",
+      //   message: `${req.user?.name} has review in ${course.name}`,
+      // };
+      await NotificationModel.create({
+        user: req.user?._id,
         title: "New Review Received",
         message: `${req.user?.name} has review in ${course.name}`,
-      };
+      })
       res.status(200).json({
         success: true,
         course,
