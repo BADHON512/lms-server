@@ -39,11 +39,11 @@ courseRouter.put(
   authorizeRoles("admin"),
   editCourse
 );
-courseRouter.get("/get-single-course/:id",  updateAccessToken, getSingleCourse);
-courseRouter.get("/get-all-course",   updateAccessToken, getAllCourse);
+courseRouter.get("/get-single-course/:id",   getSingleCourse);
+courseRouter.get("/get-all-course",  getAllCourse);
 courseRouter.get("/get-all-courses",  updateAccessToken,isAuthenticated,authorizeRoles('admin'),getAllCourses );
 courseRouter.delete("/course-delete/:id",  updateAccessToken,isAuthenticated,authorizeRoles('admin'),  updateAccessToken,deleteCourse );
-courseRouter.get("/get-course-content/:id",  updateAccessToken, isAuthenticated, getCourseByUser);
+courseRouter.get("/get-course-content/:id",   isAuthenticated, getCourseByUser);
 courseRouter.put("/add-question",  updateAccessToken, isAuthenticated, addQuestion);
 courseRouter.put("/add-answer",  updateAccessToken, isAuthenticated, addAnswer);
 courseRouter.put("/add-review/:id",  updateAccessToken, isAuthenticated, addReview);
